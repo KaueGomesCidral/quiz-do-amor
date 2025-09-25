@@ -67,19 +67,16 @@
 </head>
 <body>
 
-  <!-- Música de fundo -->
   <audio id="bgMusic" loop>
     <source src="exagerado.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Tela inicial -->
   <div id="start" class="screen active">
     <h1>Quiz do Amor 💘</h1>
     <p>Clique abaixo para começar:</p>
     <button onclick="startGame()">Começar</button>
   </div>
 
-  <!-- Tela do quiz -->
   <div id="quiz" class="screen">
     <div class="hud">
       <div>Pontos: <span id="score">0</span></div>
@@ -95,7 +92,6 @@
     </div>
   </div>
 
-  <!-- Tela final -->
   <div id="end" class="screen">
     <h1>Fim do jogo!</h1>
     <p>Sua pontuação: <span id="finalScore"></span></p>
@@ -105,7 +101,6 @@
     <div class="final-love">EU TE AMO MEU AMOR ❤️ FELIZ 3 ANOS DE NAMORO PARA A GENTE 🎉</div>
   </div>
 
-  <!-- Sons -->
   <audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_17f6a3c6e7.mp3?filename=success-1-6297.mp3"></audio>
   <audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2021/09/01/audio_1b20e55b69.mp3?filename=error-126627.mp3"></audio>
   <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_efb9c65f2f.mp3?filename=success-1-6295.mp3"></audio>
@@ -126,7 +121,6 @@
     { q: "Quem mandou a primeira mensagem?", options: ["Eu(Kaue)","Você(Amanda)"], answer: "Eu(Kaue)" },
     { q: "Primeiro filme no cinema?", options: ["Comédia","Romance","Ação/aventura","Outro"], answer: "Outro" },
     { q: "Quem fala mais 'to com fome'?", options: ["Eu(Kaue)","Você(Amanda)"], answer: "Você(Amanda)" },
-    // Pergunta especial
     { q: "Quem ama mais?", options: ["Eu(Kaue)", "Você(Amanda)"], special: true }
   ];
 
@@ -238,7 +232,6 @@
     }
   }
 
-  // Confete 🎉
   const confetti = document.getElementById('confetti');
   const ctx = confetti.getContext('2d');
   confetti.width = window.innerWidth;
