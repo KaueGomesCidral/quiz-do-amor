@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz do Amor 💘</title>
+  <style>
+    body {
+      font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+      background: linear-gradient(135deg, #ff003c, #6a0dad, #000000);
+      color: white;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .screen { display: none; text-align: center; animation: fadeIn 0.8s ease; width: 100%; max-width: 480px; padding: 20px; }
+    .active { display: block; }
+    h1 { font-size: 2.2rem; margin-bottom: 20px; text-shadow: 2px 2px 8px black; }
+    button {
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      margin: 10px 0;
+      font-size: 1rem;
+      background: #ff003c;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s, background 0.2s;
+    }
+    button:hover { transform: scale(1.05); background: #ff3366; }
+    .hud { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; font-size: 1.2rem; }
+    .hearts { font-size: 2rem; display: flex; gap: 5px; }
+    .heart { animation: pulse 1.5s infinite; }
+    .heart.lost { animation: explode 0.5s forwards; color: grey; }
+    .question-box {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(255,255,255,0.3);
+      margin-top: 20px;
+      animation: slideUp 0.7s ease;
+    }
+    .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .answers button { background: white; color: black; }
+    .store { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .reward {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .reward:hover { background: rgba(255, 255, 255, 0.3); }
+    #chosenRewards { margin-top: 20px; font-size: 1.2rem; }
+    .final-love { margin-top: 40px; font-size: 1.8rem; font-weight: bold; color: #ff3366; text-shadow: 2px 2px 8px black; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    canvas { position: fixed; top: 0; left: 0; pointer-events: none; }
+    audio { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Música de fundo -->
+  <audio id="bgMusic" loop>
+    <source src="exagerado.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Tela inicial -->
+  <div id="start" class="screen active">
+    <h1>Quiz do Amor 💘</h1>
+    <p>Clique abaixo para começar:</p>
+    <button onclick="startGame()">Começar</button>
+  </div>
+
+  <!-- Tela do quiz -->
+  <div id="quiz" class="screen">
+    <div class="hud">
+      <div>Pontos: <span id="score">0</span></div>
+      <div class="hearts" id="lives">
+        <span class="heart">❤️</span>
+        <span class="heart">❤️</span>
+        <span class="heart">❤️</span>
+      </div>
+    </div>
+    <div class="question-box">
+      <p id="question">Pergunta aqui...</p>
+      <div class="answers" id="answers"></div>
+    </div>
+  </div>
+
+  <!-- Tela final -->
+  <div id="end" class="screen">
+    <h1>Fim do jogo!</h1>
+    <p>Sua pontuação: <span id="finalScore"></span></p>
+    <p>Escolha suas recompensas com seus pontos 💝</p>
+    <div class="store" id="store"></div>
+    <div id="chosenRewards"></div>
+    <div class="final-love">EU TE AMO MEU AMOR ❤️ FELIZ 3 ANOS DE NAMORO PARA A GENTE 🎉</div>
+  </div>
+
+  <!-- Sons -->
+  <audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_17f6a3c6e7.mp3?filename=success-1-6297.mp3"></audio>
+  <audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2021/09/01/audio_1b20e55b69.mp3?filename=error-126627.mp3"></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_efb9c65f2f.mp3?filename=success-1-6295.mp3"></audio>
+
+  <canvas id="confetti"></canvas>
+
+<script>
+  const questions = [
+    { q: "Onde foi nosso primeiro beijo?", options: ["Na escola", "No Vôlei", "No interclasse", "No Shopping"], answer: "No interclasse" },
+    { q: "Quem mais começou conversa no WhatsApp?", options: ["Você(Amanda)", "Eu(Kaue)"], answer: "Eu(Kaue)" },
+    { q: "Quem fala mais 'eu te amo'?", options: ["Eu(Kaue)", "Você(Amanda)"], answer: "Eu(Kaue)" },
+    { q: "Quem sempre tem razão?", options: ["Eu(Kaue)", "Você(MINHA DEUSA)"], answer: "Você(MINHA DEUSA)" },
+    { q: "Quem disse 'eu te amo' primeiro?", options: ["Eu(Kaue)", "Você(Amanda)"], answer: "Eu(Kaue)" },
+    { q: "Qual a comida que a gente mais come?", options: ["Pizza","BUGUI","Sushi","FUDI"], answer: "Sushi" },
+    { q: "Qual viagem já decretamos?", options: ["França","Itália","Inglaterra","Espanha"], answer: "Itália" },
+    { q: "Quem sente mais falta?", options: ["Eu(Kaue)","Você(Amanda)","Os dois"], answer: "Os dois" },
+    { q: "Qual apelido mais usei?", options: ["Mozinha linda","Princesinha","Amozinha","Minha rainha"], answer: "Mozinha linda" },
+    { q: "Quem mandou a primeira mensagem?", options: ["Eu(Kaue)","Você(Amanda)"], answer: "Eu(Kaue)" },
+    { q: "Primeiro filme no cinema?", options: ["Comédia","Romance","Ação/aventura","Outro"], answer: "Outro" },
+    { q: "Quem fala mais 'to com fome'?", options: ["Eu(Kaue)","Você(Amanda)"], answer: "Você(Amanda)" },
+    // Pergunta especial
+    { q: "Quem ama mais?", options: ["Eu(Kaue)", "Você(Amanda)"], special: true }
+  ];
+
+  const rewards = [
+    { name: "Espremer espinhas 😈", cost: 10 },
+    { name: "Massagem no pé 🦶💆", cost: 20 },
+    { name: "Sorvete Borelli 🍦", cost: 30 },
+    { name: "Saída surpresa 🎉", cost: 40 }
+  ];
+
+  let current = 0, score = 0, lives = 3, chosen = [], clickedLove = 0;
+
+  function switchScreen(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+  }
+
+  function startGame() {
+    const bgMusic = document.getElementById("bgMusic");
+    bgMusic.volume = 0.2;
+    bgMusic.play();
+    switchScreen("quiz");
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    if (current >= questions.length || lives <= 0) { endGame(); return; }
+
+    const q = questions[current];
+    document.getElementById("question").innerText = q.q;
+    const answersDiv = document.getElementById("answers");
+    answersDiv.innerHTML = "";
+
+    if (q.special) {
+      clickedLove = 0;
+      q.options.forEach(opt => {
+        let btn = document.createElement("button");
+        btn.innerText = opt;
+        btn.onclick = () => {
+          btn.remove();
+          clickedLove++;
+          if (clickedLove === q.options.length) {
+            let loveBtn = document.createElement("button");
+            loveBtn.innerText = "Nós nos amamos 💘";
+            loveBtn.onclick = () => {
+              score += 10;
+              document.getElementById("score").innerText = score;
+              current++;
+              loadQuestion();
+            };
+            answersDiv.appendChild(loveBtn);
+          }
+        };
+        answersDiv.appendChild(btn);
+      });
+    } else {
+      q.options.forEach(opt => {
+        let btn = document.createElement("button");
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(opt);
+        answersDiv.appendChild(btn);
+      });
+    }
+  }
+
+  function checkAnswer(opt) {
+    const q = questions[current];
+    if (opt === q.answer) {
+      score += 10;
+      document.getElementById("score").innerText = score;
+      document.getElementById("correctSound").play();
+    } else {
+      lives--;
+      document.getElementById("wrongSound").play();
+      const hearts = document.querySelectorAll("#lives .heart");
+      if (hearts[lives]) hearts[lives].classList.add("lost");
+    }
+    current++;
+    setTimeout(loadQuestion, 600);
+  }
+
+  function endGame() {
+    switchScreen("end");
+    document.getElementById("finalScore").innerText = score;
+
+    const storeDiv = document.getElementById("store");
+    storeDiv.innerHTML = "";
+    rewards.forEach(r => {
+      const div = document.createElement("div");
+      div.className = "reward";
+      div.innerText = `${r.name} - ${r.cost} pts`;
+      div.onclick = () => buyReward(r);
+      storeDiv.appendChild(div);
+    });
+
+    document.getElementById("winSound").play();
+    launchConfetti();
+  }
+
+  function buyReward(r) {
+    if (score >= r.cost) {
+      score -= r.cost;
+      chosen.push(r.name);
+      document.getElementById("score").innerText = score;
+      document.getElementById("finalScore").innerText = score;
+      document.getElementById("chosenRewards").innerText = "Você ganhou: " + chosen.join(", ");
+    } else {
+      alert("Pontos insuficientes 😢");
+    }
+  }
+
+  // Confete 🎉
+  const confetti = document.getElementById('confetti');
+  const ctx = confetti.getContext('2d');
+  confetti.width = window.innerWidth;
+  confetti.height = window.innerHeight;
+  const pieces = Array.from({ length: 200 }, () => ({
+    x: Math.random() * confetti.width,
+    y: Math.random() * confetti.height - confetti.height,
+    w: 10,
+    h: 10,
+    color: `hsl(${Math.random() * 360},100%,50%)`,
+    speed: 2 + Math.random() * 3
+  }));
+
+  function launchConfetti() {
+    function draw() {
+      ctx.clearRect(0, 0, confetti.width, confetti.height);
+      for (let p of pieces) {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        p.y += p.speed;
+        if (p.y > confetti.height) p.y = -10;
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+</script>
+</body>
+</html>
